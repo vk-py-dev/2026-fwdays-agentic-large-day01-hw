@@ -176,6 +176,8 @@
 ## Future UX Goals (Roadmap)
 
 - **VR/AR Support**: Immersive collaboration spaces
+- **Video Integration**: Drawing over video content
+- **Plugin System**: Third-party extensions for specialized domains
 
 ---
 
@@ -187,5 +189,3 @@
 - **System Implementation**: See [`systemPatterns.md`](systemPatterns.md) for how UX is implemented
 - **Technical Architecture**: See [`docs/technical/architecture.md`](../technical/architecture.md) for rendering and performance details
 - **Current Development**: See [`activeContext.md`](activeContext.md) for current UX focus areas
-- **Video Integration**: Drawing over video content
-- **Plugin System**: Third-party extensions for specialized domains

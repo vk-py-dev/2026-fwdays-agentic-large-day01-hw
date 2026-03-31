@@ -38,3 +38,8 @@ meta*.json
 excalidraw-app/version.json
 scripts/wasm/woff2.wasm
 scripts/wasm/hb-subset.wasm
+.git/
+.next/
+.nyc_output/
+*.snap
+yarn.lock

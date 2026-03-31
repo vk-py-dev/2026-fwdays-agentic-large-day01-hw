@@ -129,7 +129,7 @@ nvm use  # Uses version from .nvmrc
 
 ### Monorepo Layout
 
-```
+```text
 excalidraw/
 ├── excalidraw-app/           # Main web application
 │   ├── src/                  # Application source code
@@ -278,7 +278,7 @@ yarn start
 
 ### What to Expect
 
-```
+```console
 ✔ Vite dev server started
 ✔ Browser opens to http://localhost:5173
 ✔ App fully functional
@@ -366,7 +366,7 @@ yarn test:all
 
 ### Understand Test Output
 
-```
+```console
 PASS excalidraw-app/components/__tests__/ExportButton.test.tsx
   ExportButton
     ✓ renders export button (25 ms)
@@ -448,7 +448,7 @@ git commit -m "Add PNG export button to toolbar"
 
 ### Commit Message Format
 
-```
+```text
 # Good commit messages:
 "Add PNG export button to toolbar"
 "Fix arrow binding when element resized"

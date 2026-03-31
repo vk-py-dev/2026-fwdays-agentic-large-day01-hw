@@ -263,7 +263,7 @@ A comprehensive dictionary of terms used in the Excalidraw codebase, with defini
 
 **Definition**: A drawing mode or tool type that determines how the editor interprets user pointer input and what gets created.
 
-**Tool types** (9 total):
+**Tool types** (11 total):
 - `selection` - Default mode, select and manipulate elements
 - `rectangle` - Draw rectangular shapes
 - `diamond` - Draw diamond shapes

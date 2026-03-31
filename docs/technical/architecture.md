@@ -206,268 +206,39 @@ UI re-renders
 
 ### AppState Structure
 
-AppState is a monolithic object containing 100+ properties organized by concern:
+AppState is a monolithic object containing 100+ properties organized by concern: viewport (scroll, zoom, size), tool state (active tool, locked), selection & editing (selected/hovered elements), element styling (colors, stroke, opacity), UI toggles (theme, view mode, dialogs), collaboration (remote users, follow state), and persistence (export options, file handle, name).
 
-#### Viewport State
-```typescript
-scrollX: number              // Canvas viewport X position
-scrollY: number              // Canvas viewport Y position
-width: number                // Container width
-height: number               // Container height
-offsetLeft: number           // Container offset from window
-offsetTop: number            // Container offset from window
-zoom: { value: number }      // Zoom level (0.1 to 16)
-```
-
-#### Tool State
-```typescript
-activeTool: {
-  type: 'selection' | 'rectangle' | 'diamond' | 'ellipse' | 
-         'arrow' | 'line' | 'freedraw' | 'text' | 'eraser' | 'laser'
-  customType: null | string
-  locked: boolean            // Tool locked for repeated use
-  fromSelection: boolean
-  lastActiveTool: null | string
-}
-preferredSelectionTool: {
-  type: string
-  initialized: boolean
-}
-penMode: boolean             // Stylus/pen mode
-penDetected: boolean         // Pen device detected
-```
-
-#### Selection & Editing
-```typescript
-selectedElementIds: Record<string, true>      // Currently selected
-selectedGroupIds: Record<string, true>        // Selected groups
-hoveredElementIds: Record<string, true>       // Hovered elements
-editingTextElement: TextElement | null        // Currently editing
-editingGroupId: string | null                 // Group being edited
-newElement: Element | null                    // Being created
-resizingElement: Element | null               // Being resized
-selectedLinearElement: LinearElementEditor    // Arrow editor state
-multiElement: Element[] | null                // Multi-point element
-```
-
-#### Element Styling
-```typescript
-currentItemStrokeColor: string
-currentItemBackgroundColor: string
-currentItemFillStyle: 'hachure' | 'cross-hatch' | 'solid'
-currentItemStrokeStyle: 'solid' | 'dashed' | 'dotted'
-currentItemStrokeWidth: number
-currentItemOpacity: number
-currentItemRoughness: 'architect' | 'artist' | 'cartoonist'
-currentItemRoundness: 'round' | 'adaptive' | 'sharp'
-currentItemFontFamily: number
-currentItemFontSize: number
-currentItemTextAlign: 'left' | 'center' | 'right'
-```
-
-#### UI State
-```typescript
-theme: 'light' | 'dark'
-viewModeEnabled: boolean
-zenModeEnabled: boolean
-gridModeEnabled: boolean
-openMenu: null | 'canvas' | 'shape'
-openDialog: { name: string; tab?: string } | null
-openPopup: { type: string } | null
-openSidebar: { name: string; tab?: string } | null
-contextMenu: { x: number; y: number } | null
-showWelcomeScreen: boolean
-showHyperlinkPopup: boolean
-```
-
-#### Collaboration
-```typescript
-collaborators: Map<SocketId, Collaborator>    // Remote users
-userToFollow: Collaborator | null             // Following user
-```
-
-#### History & Persistence
-```typescript
-exportWithDarkMode: boolean
-exportBackground: boolean
-exportEmbedScene: boolean
-exportScale: number
-fileHandle: FileSystemFileHandle | null       // For file API
-name: string | null                           // Drawing name
-```
+**See**: `packages/excalidraw/types.ts` for complete interface definition.
 
 ### App Class State Management
 
-**Located in**: `packages/excalidraw/components/App.tsx` (lines 617-851)
+**Located in**: `packages/excalidraw/components/App.tsx`
 
-```typescript
-class App extends React.Component<AppProps, AppState> {
-  // Class properties (not React state)
-  canvas: HTMLCanvasElement
-  scene: Scene                          // Element storage
-  renderer: Renderer                    // Canvas rendering
-  actionManager: ActionManager          // 48 actions
-  library: Library                      // Drawable library
-  history: History                      // Undo/redo
-  store: Store                          // Delta tracking
-  api: ExcalidrawImperativeAPI         // Public API
-  
-  // Initialization in constructor
-  this.state = {
-    ...defaultAppState,
-    theme,
-    width: window.innerWidth,
-    height: window.innerHeight,
-    // ... 100+ more properties
-  }
-  
-  // Public state setter
-  setAppState = (state: Partial<AppState>, callback?) => {
-    this.setState(state, callback)
-  }
-  
-  // Render trigger
-  triggerRender = (force?: boolean) => {
-    if (force) {
-      this.scene.triggerUpdate()
-    } else {
-      this.setState({})  // Empty setState forces React update
-    }
-  }
-}
-```
+The App class uses React state to store AppState. Key properties include scene (element storage), renderer (canvas rendering), actionManager (48 actions), library (drawable library), history (undo/redo), store (delta tracking), and api (public API). Uses `setAppState()` method and `triggerRender()` to manage updates and rendering triggers.
+
+**See**: [`systemPatterns.md`](../memory/systemPatterns.md) for class component patterns.
 
 ### Jotai Atoms (UI-specific state)
 
-Located in various components, managed via `editor-jotai.ts` (lines 1-18):
-
-```typescript
-// Sidebar toggle
-export const isSidebarDockedAtom = atom(false)
-
-// Color picker
-export const activeEyeDropperAtom = atom<null | EyeDropperProperties>(null)
-
-// Search menu
-export const searchItemInFocusAtom = atom<number | null>(null)
-
-// Library
-export const libraryItemsAtom = atom<{...}>()
-export const libraryItemSvgsCache = atom<SvgCache>(new Map())
-
-// Dialogs
-export const activeConfirmDialogAtom = atom<"clearCanvas" | null>(null)
-export const overwriteConfirmStateAtom = atom<OverwriteConfirmState>({...})
-
-// AI features (TTD)
-export const chatHistoryAtom = atom<TChat.ChatHistory>({...})
-export const savedChatsAtom = atom<SavedChats>([])
-export const showPreviewAtom = atom<boolean>(false)
-export const errorAtom = atom<Error | null>(null)
-```
-
-All atoms managed by `EditorJotaiProvider` with isolated store via `jotai-scope`.
+Located in `editor-jotai.ts`, managed via `EditorJotaiProvider` with isolated store via `jotai-scope`. Examples: `isSidebarDockedAtom`, `activeEyeDropperAtom`, `searchItemInFocusAtom`, `libraryItemsAtom`, `chatHistoryAtom`, `errorAtom`. Atoms handle UI toggles, color picker, search focus, library state, and AI features.
 
 ### AppStateObserver Pattern
 
-**Located in**: `packages/excalidraw/components/AppStateObserver.ts` (lines 1-209)
+**Located in**: `packages/excalidraw/components/AppStateObserver.ts`
 
-Enables flexible subscriptions to state changes:
-
-```typescript
-export type OnStateChange = {
-  // Subscribe to single property
-  <K extends keyof AppState>(
-    prop: K,
-    callback: (value: AppState[K], appState: AppState) => void
-  ): UnsubscribeCallback
-  
-  // Subscribe to multiple properties
-  (
-    prop: (keyof AppState)[],
-    callback: (appState: AppState) => void
-  ): UnsubscribeCallback
-  
-  // Subscribe via selector function
-  <T>(
-    selector: (appState: AppState) => T,
-    callback: (value: T, appState: AppState) => void
-  ): UnsubscribeCallback
-  
-  // Subscribe via predicate
-  (opts: {
-    predicate: (appState: AppState) => boolean
-    callback: (appState: AppState) => void
-  }): UnsubscribeCallback
-  
-  // Promise-based (wait for change)
-  <K extends keyof AppState>(prop: K): Promise<AppState[K]>
-}
-```
-
-**Implementation**: `appStateObserver = new AppStateObserver(() => this.state)`
+Enables flexible subscriptions to state changes via property key, property array, selector function, or predicate with callback or promise-based patterns. Allows components to subscribe to specific state changes without full AppState updates.
 
 ### ActionManager
 
 **Located in**: `packages/excalidraw/actions/` (48 action files)
 
-```typescript
-class ActionManager {
-  private actions = new Map<string, Action>()
-  
-  registerAction(action: Action): void
-  registerAll(actions: Action[]): void
-  executeAction(action: Action): void
-}
-```
-
-**Action Structure**:
-```typescript
-interface Action {
-  name: string
-  label: string
-  keywords: string[]
-  perform: (elements, appState, value?, app?) => Partial<AppState>
-  predicate: (appState, props?) => boolean
-  keyTest: (event) => boolean
-  registered: boolean
-}
-```
-
-**48 Registered Actions** include:
-- Canvas: zoom, pan, reset, export
-- Selection: select all, deselect, invert
-- Element: delete, duplicate, lock, hide
-- Alignment: align left/right/top/bottom/center
-- Distribution: distribute evenly
-- Text: edit, convert to shape
-- Styling: change colors, stroke, fill
-- History: undo, redo
-- Groups: group, ungroup
-- Frames: create, manage
-- And more...
+Manages all user actions (zoom, pan, reset, export, select, delete, duplicate, alignment, styling, undo/redo, groups, frames, etc.). Each action has name, label, keywords, perform function, predicate, and keyTest.
 
 ### Scene Management
 
-**Located in**: `packages/excalidraw/scene/` and `packages/element/src/Scene.ts`
+**Located in**: `packages/excalidraw/scene/`
 
-```typescript
-class Scene {
-  private getNonDeletedElements(): ExcalidrawElement[]
-  getElementsIncludingDeleted(): ExcalidrawElement[]
-  getSelectedElements(appState: AppState): ExcalidrawElement[]
-  getNonDeletedElementsMap(): Map<string, ExcalidrawElement>
-  
-  onUpdate(callback: () => void): () => void
-  triggerUpdate(): void
-  destroy(): void
-}
-```
-
-**Element Storage**:
-- Elements stored in `Store` (not AppState directly)
-- Store tracks deltas for undo/redo
-- Store emits increments for collaboration
+Stores elements separately from AppState. Provides methods for element access, selection, and updates. Elements tracked in Store for undo/redo and collaboration sync.
 
 ---
 
@@ -507,106 +278,9 @@ graph TD
 
 **Located in**: `packages/excalidraw/scene/Renderer.ts` and `packages/excalidraw/renderer/`
 
-#### Stage 1: Static Scene (Base Elements)
+Four main stages: **(1) Static Scene** renders base elements off-screen (shapes, text, styling). **(2) Interactive Scene** renders on-screen with user interactions (selection highlights, hover states, in-progress drawings). **(3) Snap Lines & Guides** optionally visualizes grid, alignment guides, and distance indicators. **(4) Animation Frame** handles smooth transitions, cursor trails, lasso, and eraser animations.
 
-```typescript
-// File: interactiveScene.ts (13,752 tokens)
-// Renders base elements off-screen
-// Handles:
-//   - Shape rendering (rectangles, ellipses, arrows)
-//   - Text rendering
-//   - Element styling (stroke, fill, opacity)
-//   - Element transforms (position, rotation)
-```
-
-#### Stage 2: Interactive Scene (User Interactions)
-
-```typescript
-// File: interactiveScene.ts
-// Renders on-screen interactive elements
-// Handles:
-//   - Selection highlights
-//   - Hover states
-//   - In-progress drawings
-//   - Bound element indicators
-//   - Collaboration cursors
-```
-
-#### Stage 3: Snap Lines & Guides
-
-```typescript
-// File: renderSnaps.ts (1,544 tokens)
-// Optional visualization layer
-// Renders:
-//   - Grid lines (if gridModeEnabled)
-//   - Snap guides (alignment, distribution)
-//   - Distance indicators
-```
-
-#### Stage 4: Animation Frame
-
-```typescript
-// File: animation.ts (animation frame handling)
-// Performs:
-//   - Smooth transitions
-//   - Cursor trails
-//   - Lasso animations
-//   - Eraser trails
-```
-
-### Viewport Calculation
-
-**Located in**: `packages/excalidraw/scene/export.ts`
-
-```typescript
-getRenderableElements(config: {
-  sceneNonce: string
-  zoom: { value: number }
-  offsetLeft: number
-  offsetTop: number
-  scrollX: number
-  scrollY: number
-  height: number
-  width: number
-  editingTextElement?: TextElement
-  newElementId?: string
-}): {
-  elementsMap: Map<string, ExcalidrawElement>
-  visibleElements: ExcalidrawElement[]
-}
-```
-
-**Visibility Calculation**:
-1. Get all non-deleted elements from scene
-2. Filter by viewport bounds
-3. Include newly created elements
-4. Include elements in editing
-5. Include frame contents
-6. Sort by z-index
-
-### Canvas Rendering
-
-```typescript
-// HTML5 Canvas API
-const canvas = document.createElement("canvas")
-const ctx = canvas.getContext("2d")
-
-// RoughJS for hand-drawn style
-const rc = rough.canvas(canvas)
-
-// Draw flow:
-//   1. Clear canvas
-//   2. Set canvas size to device pixels
-//   3. Apply scaling for zoom
-//   4. For each visible element:
-//       a. Translate to position
-//       b. Rotate if needed
-//       c. Draw shape via rc.rectangle/ellipse/etc
-//       d. Draw text if applicable
-//       e. Apply opacity
-//   5. Draw UI overlays (selection, guides)
-//   6. Request next animation frame
-```
+**Visibility flow**: Get non-deleted elements → filter by viewport bounds → include new/editing elements → sort by z-index → render via RoughJS.
 
 ---
 
@@ -690,108 +364,15 @@ graph TB
     linkStyle 17,18,19,20,21,22 stroke:#16a34a,stroke-width:2px
 ```
 
-### Dependency Flow
+### Dependency Overview
 
-#### External Dependencies
+**External Dependencies**: React 19.0.0 (UI framework), TypeScript 5.9.3 (type safety), Vite 5.0.12 (build), Jotai 2.11.0 (UI state), Socket.io 4.7.2 (collaboration), Firebase 11.3.1 (cloud), RoughJS 4.6.4 (rendering), Perfect Freehand 1.2.0 (pen strokes).
 
-**React 19.0.0**
-- Used in: All components (App.tsx, 156 components)
-- Purpose: UI framework, hooks, context
-- Export: Components returned as JSX
+**Internal Packages**: @excalidraw/common (constants, utilities, types) → @excalidraw/element (types, binding, bounds, collision, transform, delta) → @excalidraw/math (Point, Vector, Curve, Ellipse) → @excalidraw/utils (export, shape, bounds).
 
-**TypeScript 5.9.3**
-- Used in: All source files
-- Purpose: Type safety (strict mode enabled)
-- Exports: Type definitions
+**Data Flow**: User → ActionManager → mutate ExcalidrawElement → apply transforms → Store → Socket.io → Firebase → export via Utils → Renderer (RoughJS) → Canvas.
 
-**Vite 5.0.12**
-- Used in: Build system
-- Purpose: Bundle and serve ESM
-- Outputs: `dist/prod/index.js`, `dist/dev/index.js`, CSS
-
-**Jotai 2.11.0**
-- Used in: UI state management
-- Atoms: Dialog toggles, sidebar state, search focus, library items
-- Provider: EditorJotaiProvider with jotai-scope
-
-**Socket.io-client 4.7.2**
-- Used in: Real-time collaboration
-- Emits: Element updates, user presence
-- Listens: Remote changes, collaborator updates
-
-**Firebase 11.3.1**
-- Used in: Cloud persistence
-- Services: Firestore (documents), Storage (files), Auth
-- Integration: `excalidraw-app/data/firebase.ts`
-
-**RoughJS 4.6.4**
-- Used in: Canvas rendering
-- Purpose: Hand-drawn style rendering
-- Called in: `renderer/interactiveScene.ts`
-
-**Perfect Freehand 1.2.0**
-- Used in: Freehand drawing
-- Purpose: Smooth curve interpolation
-- Applies to: Pen tool strokes
-
-#### Internal Package Dependencies
-
-**@excalidraw/excalidraw imports from:**
-```
-├── @excalidraw/common
-│   ├── constants (THEME, KEYS, COLOR_PALETTE)
-│   ├── utils (coordinate conversions)
-│   └── types (EditorInterface, utility types)
-├── @excalidraw/element
-│   ├── types (ExcalidrawElement, all element types)
-│   ├── binding (arrow binding logic)
-│   ├── transform (element mutations)
-│   ├── collision (hit detection)
-│   └── delta (incremental changes for undo/redo)
-├── @excalidraw/math
-│   ├── Point operations
-│   ├── Vector math (rotation, scaling)
-│   ├── Curve interpolation
-│   └── Ellipse calculations
-└── @excalidraw/utils
-    ├── Export utilities (SVG, PNG, Canvas)
-    ├── Shape utilities
-    └── Bounds checking
-```
-
-### Data Flow Through Packages
-
-```
-User Input (App.tsx)
-    ↓
-ActionManager (actions/)
-    ↓ mutates
-ExcalidrawElement (@excalidraw/element)
-    ↓ uses math for transforms
-@excalidraw/math
-    ↓ uses constants and types
-@excalidraw/common
-    ↓ stores and tracks deltas
-Store (data/store.ts)
-    ↓ broadcasts via Socket.io
-Firebase (persistence)
-    ↓ exports via
-@excalidraw/utils (export.ts)
-    ↓ renders via
-Renderer (scene/)
-    ↓ uses RoughJS for styling
-Canvas Output
-```
-
-### Package Separation Rationale
-
-| Package | Purpose | When Used | Bundle Impact |
-|---------|---------|-----------|----------------|
-| @excalidraw/excalidraw | Full editor component | All embedding scenarios | 420 KB (prod) |
-| @excalidraw/common | Constants & utilities | Always (imported by all) | Minimal |
-| @excalidraw/element | Element types & operations | Element manipulation | ~15% of bundle |
-| @excalidraw/math | Mathematical utilities | Rendering & transforms | ~5% of bundle |
-| @excalidraw/utils | Export functions | Export operations only | ~10% of bundle |
+**See**: `packages/excalidraw/package.json` for complete dependency versions and `docs/memory/techContext.md` for technology stack overview.
 
 ---
 
