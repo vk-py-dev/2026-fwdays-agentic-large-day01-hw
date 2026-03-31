@@ -20,7 +20,7 @@ graph TB
     end
     
     subgraph "Core Business Logic"
-        ActionMgr["ActionManager<br/>48 actions"]
+        ActionMgr["ActionManager<br/>actions"]
         Scene["Scene<br/>Element storage"]
         History["History<br/>Undo/Redo"]
     end
@@ -292,8 +292,8 @@ Four main stages: **(1) Static Scene** renders base elements off-screen (shapes,
 graph TB
     subgraph "@excalidraw/excalidraw (main)"
         App["App.tsx<br/>React component"]
-        Actions["actions/<br/>48 action files"]
-        Components["components/<br/>156 components"]
+        Actions["actions/<br/>action files"]
+        Components["components/<br/>UI components"]
         Data["data/<br/>persistence & io"]
         Scene["scene/<br/>rendering"]
     end

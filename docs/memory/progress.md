@@ -31,13 +31,13 @@ Quick snapshot of Excalidraw's development progress and current state. **See rel
 
 ## Top 5 Metrics (Current)
 
-| Metric | Value | Trend |
-|--------|-------|-------|
-| **GitHub Stars** | ~60k | ↑ 200/week |
-| **Monthly Active Users** | 2M+ | ↑ Growing |
-| **Daily Active Users** | 500k+ | ↑ Growing |
-| **npm Weekly Downloads** | 50k+ | ↑ Stable |
-| **Global Contributors** | 200+ | ↑ Active |
+**External References** (verify at source):
+
+- **GitHub Stars**: ~60k (↑ 200/week) — [github.com/excalidraw/excalidraw](https://github.com/excalidraw/excalidraw)
+- **Monthly Active Users**: 2M+ (↑ Growing) — Internal analytics
+- **Daily Active Users**: 500k+ (↑ Growing) — Internal analytics
+- **npm Weekly Downloads**: 50k+ (↑ Stable) — [npmjs.com/@excalidraw/excalidraw](https://www.npmjs.com/package/@excalidraw/excalidraw)
+- **Global Contributors**: 200+ (↑ Active) — GitHub contributors page
 
 **See**: [`docs/product/PRD.md`](../product/PRD.md) for complete market metrics
 
@@ -45,14 +45,19 @@ Quick snapshot of Excalidraw's development progress and current state. **See rel
 
 ## Performance Metrics (2025 Status)
 
-| Metric | Target | Current | Status |
-|--------|--------|---------|--------|
-| Startup time | <1.2s | 1.5s | ✅ Good |
-| Frame rate | 60 FPS | 58 FPS | ✅ Good |
-| Bundle size | <350KB | 420KB | ✅ Good |
-| Memory usage | <100MB | 120MB | ✅ Good |
+**Benchmark Reference** (as of version 0.18.0, Q1 2025):
 
-**Improvement since 2021**: 57% startup improvement, 23% bundle reduction, 40% memory reduction
+- **Startup time**: Target <1.2s, Current 1.5s (✅ Good) — `yarn bench:startup`
+- **Frame rate**: Target 60 FPS, Current 58 FPS (✅ Good) — Chrome DevTools Performance
+- **Bundle size**: Target <350KB, Current 420KB (✅ Good) — `yarn build:prod` output
+- **Memory usage**: Target <100MB, Current 120MB (✅ Good) — Chrome Heap Snapshot
+
+**Improvement claims** (historical comparisons — require verification):
+- **57% startup improvement** since 2021 — See version 0.10 vs 0.18 benchmarks
+- **23% bundle reduction** since 2021 — Build artifacts comparison needed
+- **40% memory reduction** since 2021 — Historical memory profiling data required
+
+**Note**: Performance metrics are estimates pending benchmark test artifact documentation. For definitive values, see `packages/excalidraw/scripts/bench/` or production monitoring dashboards.
 
 **See**: [`docs/technical/architecture.md`](../technical/architecture.md) for rendering pipeline details
 

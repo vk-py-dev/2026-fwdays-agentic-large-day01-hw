@@ -110,7 +110,7 @@ Excalidraw is an open-source, web-based drawing application that prioritizes ins
 
 **Browser**: Modern browsers only (Chrome 70+, Safari 12+); no IE support; mobile touch less precise than desktop.
 
-**See**: [`docs/product/PRD.md`](PRD.md) Appendix B for known issues and workarounds (expanded document).
+**See**: [`docs/product/domain-glossary.md`](domain-glossary.md) for known issues and detailed term definitions.
 
 ---
 
